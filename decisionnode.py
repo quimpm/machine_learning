@@ -6,3 +6,6 @@ class decisionnode:
         self.results=results
         self.tb=tb
         self.fb=fb
+
+    def toString(self):
+        return '['+str(self.col)+','+str(self.value)+','+str(self.results)+','+str(self.tb)+','+str(self.fb)+']'

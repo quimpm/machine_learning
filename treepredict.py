@@ -67,7 +67,7 @@ def buildtree(part, scoref=entropy, beta=0):
     best_criteria = scoref(part)
     best_sets = ()
     best_elem = ()
-    update_criteria = False
+    update_best_criteria = False
     for row in range(len(part)):
         for column in range(len(part[row])-1):
             try:
@@ -79,18 +79,18 @@ def buildtree(part, scoref=entropy, beta=0):
                 best_criteria = current_criteria
                 best_sets = (set1,set2)
                 best_elem = (row,column)
-                update_criteria = True
+                update_best_criteria = True
     if best_criteria < beta:
         return decisionnode(results=unique_counts(part))
     else:
-        if update_criteria == True:
+        if update_best_criteria == True:
             try:
                 return decisionnode(col=best_elem[1], value=float(part[best_elem[0]][best_elem[1]]), tb=buildtree(best_sets[0], entropy, beta), fb=buildtree(best_sets[1], entropy, beta))
             except ValueError:
                 return decisionnode(col=best_elem[1], value=part[best_elem[0]][best_elem[1]], tb=buildtree(best_sets[0], entropy, beta), fb=buildtree(best_sets[1], entropy, beta))
         else:
             return decisionnode(results=unique_counts(part))
-        
+
 def classify(obj, tree):
     dataset = read(sys.argv[1])
     dataset.append(obj)
@@ -99,20 +99,19 @@ def classify(obj, tree):
     while nodes:
         current_node=nodes.pop(0)
         set1,set2=divideset(current_node[1], current_node[0].col, current_node[0].value)
-        if obj in set1:
-            return set1
+        if current_node[0].fb is None and current_node[0].tb is None and obj in current_node[1]:
+            return current_node[1]
         else:
             nodes.append([current_node[0].fb,set2])
+            nodes.append([current_node[0].tb,set1])
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit()
 
     dat_file = read(sys.argv[1])
-    #print(dat_file)
     #counts = unique_counts(dat_file)
     #gini = gini_impurity(dat_file)
     #ent = entropy(dat_file)
-    #print(divideset(dat_file,3,18))
     tree = buildtree(part=dat_file, beta=1)
     printtree(tree)
     classification=classify(['google','New Zealand','yes','23','None'], tree)
