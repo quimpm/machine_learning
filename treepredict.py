@@ -11,7 +11,7 @@ def read(file_name):
     data = open(file_name)
     dataset = []
     for line in data.readlines():
-        words = line.split('\n')[0].split('\t')
+        words = line.split('\n')[0].split(',')
         dataset.append(words)
     return dataset
 
@@ -97,11 +97,14 @@ def buildtree_iter(part, scoref=entropy, beta=0):
     best_sets = ()
     best_elem = ()
     node_list = []
-    sets_list = [part]
+    sets_list = [[part, None, None]]
     while sets_list:
-        data_set = sets_list.pop(0)
+        current_node = sets_list.pop(0)
+        data_set = current_node[0]
+        father = current_node[1]
+        side = current_node[2]
         best_criteria = scoref(data_set)
-        update_best_criteria = False
+        update_best_criteria = False #En cas d'estar en un node fulla amb impuresa mínima més gran que beta
         if best_criteria > beta:
             for row in range(len(data_set)):
                 for column in range(len(data_set[row])-1):
@@ -116,11 +119,28 @@ def buildtree_iter(part, scoref=entropy, beta=0):
                         best_elem = (row,column)
                         update_best_criteria=True
             if update_best_criteria:
-                node_list.append([data_set[best_elem[0]][best_elem[1]], best_elem[1]])
-                sets_list.append(best_sets[0])
-                sets_list.append(best_sets[1])
-    return node_list
-        
+                node = decisionnode(col=best_elem[1], value=data_set[best_elem[0]][best_elem[1]])
+                node_list.append([node, father, side])
+                sets_list.append([best_sets[0], node, True])
+                sets_list.append([best_sets[1], node ,False])
+            else:
+                node = decisionnode(results=unique_counts(data_set))
+                node_list.append([node,father,side])
+        else:
+            node = decisionnode(results=unique_counts(data_set))
+            node_list.append([node,father,side])
+    
+    for node1 in node_list:
+        for node2 in node_list:
+            if node1[0]==node2[1]:
+                if node2[2]==True:
+                    node1[0].tb=node2[0]
+                else:
+                    node1[0].fb=node2[0]
+    
+    return node_list[0][0]
+
+
 
 def classify(obj, tree):
     dataset = read(sys.argv[1])
@@ -138,6 +158,9 @@ def classify(obj, tree):
             if current_node[0].tb is not None:
                 nodes.append([current_node[0].tb,set1])
 
+def test_performance(testset, traningset):
+    pass
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit()
@@ -146,12 +169,13 @@ if __name__ == "__main__":
     #counts = unique_counts(dat_file)
     #gini = gini_impurity(dat_file)
     #ent = entropy(dat_file)
-    tree = buildtree(part=dat_file, beta=0)
-    printtree(tree)
-    classification=classify(['facebook','New Zealand','no','22','None'], tree)
-    print(classification)
+    #tree = buildtree(part=dat_file, beta=0)
+    #printtree(tree)
+    #classification=classify(['facebook','New Zealand','no','22','None'], tree)
+    #print(classification)
     tree_iter=buildtree_iter(part=dat_file, beta=0)
-    print(tree_iter)
+    printtree(tree_iter)
+    
     
 
 
