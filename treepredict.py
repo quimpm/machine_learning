@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import sys
 import queue
-#import numpy as np
-#import tree_class as tree
 from collections import defaultdict
 from decisionnode import *
 from printtree import *
@@ -140,8 +138,6 @@ def buildtree_iter(part, scoref=entropy, beta=0):
     
     return node_list[0][0]
 
-
-
 def classify(obj, tree):
     dataset = read(sys.argv[1])
     dataset.append(obj)
@@ -158,8 +154,27 @@ def classify(obj, tree):
             if current_node[0].tb is not None:
                 nodes.append([current_node[0].tb,set1])
 
-def test_performance(testset, traningset):
-    pass
+def test_performance(traning_set, test_set):
+    full_data_set = read(sys.argv[1])
+    original_tree = buildtree(full_data_set)
+    training_tree = buildtree(training_set)
+    print("Original Tree---------------------------------------------------")
+    printtree(original_tree)
+    print("Training Tree---------------------------------------------------")
+    printtree(training_tree)
+    leafs_original = getLeafNodes(full_data_set, original_tree)
+    leafs_training = getLeafNodes(training_set, original_tree)
+
+def split_set(dat_file, percentage):
+    split_index=((len(dat_file))*percentage)//100
+    return dat_file[:split_index],dat_file[(split_index):]
+    
+def getLeafNodes(dat_file, tree):
+    if tree.results != None:
+        return [dat_file]
+    else:
+        set1,set2 = divideset(dat_file, tree.col, tree.value)
+        return getLeafNodes(set1, tree.tb)+getLeafNodes(set2, tree.fb)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -171,10 +186,13 @@ if __name__ == "__main__":
     #ent = entropy(dat_file)
     #tree = buildtree(part=dat_file, beta=0)
     #printtree(tree)
-    #classification=classify(['facebook','New Zealand','no','22','None'], tree)
+    #classification = classify(['facebook','New Zealand','no','22','None'], tree)
     #print(classification)
-    tree_iter=buildtree_iter(part=dat_file, beta=0)
-    printtree(tree_iter)
+    #tree_iter = buildtree_iter(part=dat_file, beta=0)
+    #printtree(tree_iter)
+    training_set_percentage = 90
+    training_set, test_set = split_set(dat_file, training_set_percentage)
+    test_performance(training_set, test_set)
     
     
 

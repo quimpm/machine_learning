@@ -9,3 +9,5 @@ class decisionnode:
 
     def toString(self):
         return '['+str(self.col)+','+str(self.value)+','+str(self.results)+','+str(self.tb)+','+str(self.fb)+']'
+
+        
