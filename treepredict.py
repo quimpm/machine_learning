@@ -147,7 +147,8 @@ def classify(obj, tree):
         current_node=nodes.pop(0)
         set1,set2=divideset(current_node[1], current_node[0].col, current_node[0].value)
         if current_node[0].results is not None and obj in current_node[1]:
-            return current_node[1]
+            leaf_node=current_node[1].remove(obj)
+            return [data for data in current_node[1] if data != obj]
         else:
             if current_node[0].fb is not None:
                 nodes.append([current_node[0].fb,set2])
@@ -164,6 +165,32 @@ def test_performance(traning_set, test_set):
     printtree(training_tree)
     leafs_original = getLeafNodes(full_data_set, original_tree)
     leafs_training = getLeafNodes(training_set, original_tree)
+    totalNodes=len(full_data_set)
+    correctly_classified=0
+    for data in test_set:
+        leaf_set=classify(data, training_tree) #a dincs de classify agafa el dataset sencer i per aixó no fuciona
+        for i in range(len(leafs_training)):
+            if array_equal(leaf_set,leafs_training[i]):
+                print('hotal')
+                leafs_training[i].append(data)
+    for i in range(len(leafs_training)):
+        for node in leafs_training[i]:
+            if node in leafs_original[i]:
+                correctly_classified+=1
+    return correctly_classified/totalNodes*100
+
+def array_equal(array1,array2):
+    array1.sort()
+    array2.sort()
+
+    if len(array1) != len(array2):
+        return False
+
+    for i in range(len(array1)):
+        if array1[i] != array2[i]:
+            return False
+    
+    return True
 
 def split_set(dat_file, percentage):
     split_index=((len(dat_file))*percentage)//100
@@ -184,15 +211,16 @@ if __name__ == "__main__":
     #counts = unique_counts(dat_file)
     #gini = gini_impurity(dat_file)
     #ent = entropy(dat_file)
-    #tree = buildtree(part=dat_file, beta=0)
+    tree = buildtree(part=dat_file, beta=0)
     #printtree(tree)
     #classification = classify(['facebook','New Zealand','no','22','None'], tree)
     #print(classification)
     #tree_iter = buildtree_iter(part=dat_file, beta=0)
     #printtree(tree_iter)
-    training_set_percentage = 90
+    training_set_percentage = 98
     training_set, test_set = split_set(dat_file, training_set_percentage)
-    test_performance(training_set, test_set)
+    correctly_classified=test_performance(training_set, test_set)
+    print(correctly_classified)
     
     
 
