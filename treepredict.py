@@ -83,9 +83,9 @@ def build_tree(part, scoref=entropy, beta=0):
     if(best_gain > beta):
         tree_r = build_tree(best_sets[0], scoref, beta)
         tree_l = build_tree(best_sets[1], scoref, beta)
-        return decisionnode(best_criteria[0], best_criteria[1],tb=tree_r, fb=tree_l)
+        return decisionnode(best_criteria[0], best_criteria[1],tb=tree_r, fb=tree_l, gain=best_gain)
     else:
-        return decisionnode(results=unique_counts(part))
+        return decisionnode(results=unique_counts(part), gain=best_gain)
 
 #TODO: Borrar buildtree2 i arreglar l'iteratiu
 '''def buildtree2(part, scoref=entropy, beta=0):
@@ -232,8 +232,16 @@ def getLeafNodes(dat_file, tree):
         return getLeafNodes(set1, tree.tb)+getLeafNodes(set2, tree.fb)
 
 def prune(tree, threshold):
-    #print(tree)
-
+    print(tree.col)
+    print(tree.value)
+    print(tree.results)
+    print(tree.tb)
+    print(tree.fb)
+    print(tree.gain)
+    print(tree.tb.gain)
+    print(tree.tb.tb.gain)
+    print(tree.tb.tb.tb.gain)
+    print(tree.tb.tb.tb.results)
     return False
 
 def main_1(): #Main que tenies (quim), borrar despres
@@ -256,6 +264,7 @@ def main_2(): #Main ian
     data = read(sys.argv[1])
     tree = build_tree(part=data, beta=0)
     printtree(tree)
+    prune(tree, 2)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
