@@ -9,7 +9,7 @@ def read(file_name):
     data = open(file_name)
     dataset = []
     for line in data.readlines():
-        words = line.split('\n')[0].split(',')
+        words = line.split('\n')[0].split('\t')
         dataset.append(words)
     return dataset
 
@@ -59,8 +59,36 @@ def divideset(part, column, value):
         else:
             set2.append(v)
     return (set1,set2)
-            
-def buildtree(part, scoref=entropy, beta=0):
+
+def build_tree(part, scoref=entropy, beta=0):
+    if(len(part) == 0): return decisionnode()
+    best_gain = 0
+    best_criteria = None 
+    best_sets = None
+    
+    columns = len(part[0]) -1 
+    for elem in part:
+        for i in range(columns):
+            (set1, set2) = divideset(part, i, elem[i])
+            total = len(part)
+            pr = len(set1)/ float(total)
+            pl = len(set2)/float(total)
+
+            gain = scoref(part) - pr * scoref(set1) - pl * scoref(set2)
+            if(gain > best_gain):
+                best_gain = gain
+                best_criteria = (i, elem[i])
+                best_sets = (set1, set2)
+
+    if(best_gain > beta):
+        tree_r = build_tree(best_sets[0], scoref, beta)
+        tree_l = build_tree(best_sets[1], scoref, beta)
+        return decisionnode(best_criteria[0], best_criteria[1],tb=tree_r, fb=tree_l)
+    else:
+        return decisionnode(results=unique_counts(part))
+
+#TODO: Borrar buildtree2 i arreglar l'iteratiu
+'''def buildtree2(part, scoref=entropy, beta=0):
     if len(part)==0: return decisionnode()
     best_criteria = scoref(part)
     best_sets = ()
@@ -88,7 +116,7 @@ def buildtree(part, scoref=entropy, beta=0):
                 return decisionnode(col=best_elem[1], value=part[best_elem[0]][best_elem[1]], tb=buildtree(best_sets[0], entropy, beta), fb=buildtree(best_sets[1], entropy, beta))
         else:
             return decisionnode(results=unique_counts(part))
-
+'''
 def buildtree_iter(part, scoref=entropy, beta=0):
     if len(part)==0: return decisionnode()
     best_criteria = scoref(part)
@@ -155,10 +183,10 @@ def classify(obj, tree):
             if current_node[0].tb is not None:
                 nodes.append([current_node[0].tb,set1])
 
-def test_performance(traning_set, test_set):
+def test_performance(training_set, test_set):
     full_data_set = read(sys.argv[1])
-    original_tree = buildtree(full_data_set)
-    training_tree = buildtree(training_set)
+    original_tree = build_tree(full_data_set)
+    training_tree = build_tree(training_set)
     print("Original Tree---------------------------------------------------")
     printtree(original_tree)
     print("Training Tree---------------------------------------------------")
@@ -203,15 +231,17 @@ def getLeafNodes(dat_file, tree):
         set1,set2 = divideset(dat_file, tree.col, tree.value)
         return getLeafNodes(set1, tree.tb)+getLeafNodes(set2, tree.fb)
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        sys.exit()
+def prune(tree, threshold):
+    #print(tree)
 
+    return False
+
+def main_1(): #Main que tenies (quim), borrar despres
     dat_file = read(sys.argv[1])
     #counts = unique_counts(dat_file)
     #gini = gini_impurity(dat_file)
     #ent = entropy(dat_file)
-    tree = buildtree(part=dat_file, beta=0)
+    tree = build_tree(part=dat_file, beta=0)
     #printtree(tree)
     #classification = classify(['facebook','New Zealand','no','22','None'], tree)
     #print(classification)
@@ -221,6 +251,18 @@ if __name__ == "__main__":
     training_set, test_set = split_set(dat_file, training_set_percentage)
     correctly_classified=test_performance(training_set, test_set)
     print(correctly_classified)
+
+def main_2(): #Main ian
+    data = read(sys.argv[1])
+    tree = build_tree(part=data, beta=0)
+    printtree(tree)
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("usage: python3 treepredict.py data_file") 
+        sys.exit()
+    #main_1()
+    main_2()
     
     
 
