@@ -232,17 +232,46 @@ def getLeafNodes(dat_file, tree):
         return getLeafNodes(set1, tree.tb)+getLeafNodes(set2, tree.fb)
 
 def prune(tree, threshold):
-    print(tree.col)
-    print(tree.value)
-    print(tree.results)
-    print(tree.tb)
-    print(tree.fb)
-    print(tree.gain)
-    print(tree.tb.gain)
-    print(tree.tb.tb.gain)
-    print(tree.tb.tb.tb.gain)
-    print(tree.tb.tb.tb.results)
-    return False
+    '''print("-----")
+    printtree(tree)
+    print("Col:" + str(tree.col))
+    print("Val:" + str(tree.value))
+    print("Res:" + str(tree.results))
+    print("Fb:" + str(tree.tb))
+    print("Tb:" + str(tree.fb))
+    print("Gain:" + str(tree.gain))'''
+    if tree.tb == None: return False 
+    if tree.tb.results != None and tree.fb.results != None:
+        if(tree.gain < threshold):
+            tree.col = (tree.tb.col, tree.fb.col)
+            tree.value = None
+            tree.results = merge_dicts(tree.tb.results,
+                                        tree.fb.results)
+            tree.tb = None
+            tree.fb = None
+            tree.gain = -1 
+    
+    elif(tree.tb.results == None): prune(tree.tb, threshold)
+    else: prune(tree.fb, threshold)
+    
+
+
+def merge_dicts(dict1, dict2):
+    for key in dict1:
+        if key in dict2:
+            dict2[key] += dict1[key]
+        else:
+            dict2[key] = dict1[key]
+    return dict2
+
+def main_2(): #Main ian
+    data = read(sys.argv[1])
+    tree = build_tree(part=data, beta=0)
+    printtree(tree)
+    print(" ------------- ")
+    prune(tree, 0)
+    printtree(tree)
+    
 
 def main_1(): #Main que tenies (quim), borrar despres
     dat_file = read(sys.argv[1])
@@ -259,12 +288,6 @@ def main_1(): #Main que tenies (quim), borrar despres
     training_set, test_set = split_set(dat_file, training_set_percentage)
     correctly_classified=test_performance(training_set, test_set)
     print(correctly_classified)
-
-def main_2(): #Main ian
-    data = read(sys.argv[1])
-    tree = build_tree(part=data, beta=0)
-    printtree(tree)
-    prune(tree, 2)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
