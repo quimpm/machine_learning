@@ -9,7 +9,7 @@ def read(file_name):
     data = open(file_name)
     dataset = []
     for line in data.readlines():
-        words = line.split('\n')[0].split(',')
+        words = line.split('\n')[0].split('\t')
         dataset.append(words)
     return dataset
 
@@ -148,7 +148,7 @@ def classify(obj, tree):
         set1,set2=divideset(current_node[1], current_node[0].col, current_node[0].value)
         if current_node[0].results is not None and obj in current_node[1]:
             leaf_node=current_node[1].remove(obj)
-            return [data for data in current_node[1] if data != obj]
+            return unique_counts([data for data in current_node[1] if data != obj])
         else:
             if current_node[0].fb is not None:
                 nodes.append([current_node[0].fb,set2])
@@ -156,28 +156,17 @@ def classify(obj, tree):
                 nodes.append([current_node[0].tb,set1])
 
 def test_performance(traning_set, test_set):
-    full_data_set = read(sys.argv[1])
-    original_tree = buildtree(full_data_set)
-    training_tree = buildtree(training_set)
-    print("Original Tree---------------------------------------------------")
-    printtree(original_tree)
-    print("Training Tree---------------------------------------------------")
-    printtree(training_tree)
-    leafs_original = getLeafNodes(full_data_set, original_tree)
-    leafs_training = getLeafNodes(training_set, original_tree)
-    totalNodes=len(full_data_set)
-    correctly_classified=0
-    for data in test_set:
-        leaf_set=classify(data, training_tree) #a dincs de classify agafa el dataset sencer i per aixó no fuciona
-        for i in range(len(leafs_training)):
-            if array_equal(leaf_set,leafs_training[i]):
-                print('hotal')
-                leafs_training[i].append(data)
-    for i in range(len(leafs_training)):
-        for node in leafs_training[i]:
-            if node in leafs_original[i]:
-                correctly_classified+=1
-    return correctly_classified/totalNodes*100
+    #training_tree = buildtree(training_set)
+    #def score(classified, result):
+    #    print(result, classified)
+    #    return 0 if result not in classified else classified[result] / sum([v for v in classified.values()])
+    #classfieds = map(lambda x: classify(x, training_tree), test_set)
+    #scored = map(lambda x: score(x[0], x[1][-1]), zip(classfieds, test_set))
+    #res = sum(scored) / len(test_set)
+    #print(res)
+    
+
+
 
 def array_equal(array1,array2):
     array1.sort()
@@ -219,8 +208,7 @@ if __name__ == "__main__":
     #printtree(tree_iter)
     training_set_percentage = 98
     training_set, test_set = split_set(dat_file, training_set_percentage)
-    correctly_classified=test_performance(training_set, test_set)
-    print(correctly_classified)
+    test_performance(training_set, test_set)
     
     
 
