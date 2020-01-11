@@ -121,15 +121,15 @@ def buildtree_iter(part, scoref=entropy, beta=0):
                         best_criteria = (column, data_set[row][column])
                         update_best_gain=True
             if update_best_gain:
-                node = decisionnode(col=best_criteria[0], value=best_criteria[1])
+                node = decisionnode(col=best_criteria[0], value=best_criteria[1], gain=best_gain)
                 node_list.append([node, father, side])
                 sets_list.append([best_sets[0], node, True])
                 sets_list.append([best_sets[1], node ,False])
             else:
-                node = decisionnode(results=unique_counts(data_set))
+                node = decisionnode(results=unique_counts(data_set), gain=best_gain)
                 node_list.append([node,father,side])
         else:
-            node = decisionnode(results=unique_counts(data_set))
+            node = decisionnode(results=unique_counts(data_set), gain=best_gain)
             node_list.append([node,father,side])
     
     for node1 in node_list:
@@ -207,7 +207,6 @@ def prune(tree, threshold):
             tree.tb = None
             tree.fb = None
             tree.gain = -1 
-            print("He prunejat") 
             return True
         return False
     else:
@@ -228,15 +227,12 @@ def merge_dicts(dict1, dict2):
 def main_2(): #Main ian
     data = read(sys.argv[1])
     tree = build_tree(part=data, beta=0)
-    printtree(tree)
-    print(" ------------- ")
     threshold = 0.82
     pruned = True
     while pruned:
         pruned = prune(tree, threshold)
-        printtree(tree)
-        print(pruned)
-        print("-----")
+    printtree(tree)
+    
 def main_1(): #Main que tenies (quim), borrar despres
     dat_file = read(sys.argv[1])
     #counts = unique_counts(dat_file)
@@ -257,8 +253,8 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("usage: python3 treepredict.py data_file") 
         sys.exit()
-    main_1()
-    #main_2()
+    #main_1()
+    main_2()
     
 
 
