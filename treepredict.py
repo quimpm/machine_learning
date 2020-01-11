@@ -9,7 +9,7 @@ def read(file_name):
     data = open(file_name)
     dataset = []
     for line in data.readlines():
-        words = line.split('\n')[0].split('\t')
+        words = line.split('\n')[0].split(',')
         dataset.append(words)
     return dataset
 
@@ -161,7 +161,22 @@ def classify(obj, tree):
 
 
 def test_performance(traning_set, test_set):
-    pass
+    tree = build_tree(traning_set)
+    first_obj = test_set.pop(0)
+    leaf_node=classify(first_obj, tree)
+    percentage=calculate_percentage(leaf_node,first_obj)
+    for obj in test_set:
+        leaf_node=classify(obj, tree)
+        percentage=(percentage+calculate_percentage(leaf_node, obj))/2
+    return percentage
+
+def calculate_percentage(leaf_node, obj):
+    equals_to_objective = leaf_node.get(obj[-1]) if obj[-1] in leaf_node else 0
+    total = 0
+    for value in leaf_node.values():
+        total += value
+    return equals_to_objective/total * 100
+
 
 
 def array_equal(array1,array2):
@@ -240,10 +255,12 @@ def main_2(): #Main ian
 def main_1(): #Main que tenies (quim), borrar despres
     dat_file = read(sys.argv[1])
     tree = build_tree(part=dat_file, beta=0)
-    printtree(tree)
-    tree_iter = buildtree_iter(part=dat_file, beta=0)
-    printtree(tree_iter)
-
+    #printtree(tree)
+    #tree_iter = buildtree_iter(part=dat_file, beta=0)
+    #printtree(tree_iter)
+    traning_set, test_set=split_set(dat_file, 50)
+    print(test_performance(traning_set, test_set))
+    
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("usage: python3 treepredict.py data_file") 
