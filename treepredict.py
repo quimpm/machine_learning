@@ -65,7 +65,6 @@ def build_tree(part, scoref=entropy, beta=0):
     best_gain = 0
     best_criteria = None 
     best_sets = None
-    
     columns = len(part[0]) -1 
     for elem in part:
         for i in range(columns):
@@ -121,15 +120,15 @@ def buildtree_iter(part, scoref=entropy, beta=0):
                         best_criteria = (column, data_set[row][column])
                         update_best_gain=True
             if update_best_gain:
-                node = decisionnode(col=best_criteria[0], value=best_criteria[1])
+                node = decisionnode(col=best_criteria[0], value=best_criteria[1], gain=best_gain)
                 node_list.append([node, father, side])
                 sets_list.append([best_sets[0], node, True])
                 sets_list.append([best_sets[1], node ,False])
             else:
-                node = decisionnode(results=unique_counts(data_set))
+                node = decisionnode(results=unique_counts(data_set), gain=best_gain)
                 node_list.append([node,father,side])
         else:
-            node = decisionnode(results=unique_counts(data_set))
+            node = decisionnode(results=unique_counts(data_set), gain=best_gain)
             node_list.append([node,father,side])
     
     for node1 in node_list:
@@ -203,15 +202,7 @@ def getLeafNodes(dat_file, tree):
         set1,set2 = divideset(dat_file, tree.col, tree.value)
         return getLeafNodes(set1, tree.tb)+getLeafNodes(set2, tree.fb)
 
-def prune(tree, threshold):
-    '''print("-----")
-    printtree(tree)
-    print("Col:" + str(tree.col))
-    print("Val:" + str(tree.value))
-    print("Res:" + str(tree.results))
-    print("Fb:" + str(tree.tb))
-    print("Tb:" + str(tree.fb))
-    print("Gain:" + str(tree.gain))'''
+def prune_tree(tree, threshold):
     if tree.tb == None: return False 
     if tree.tb.results != None and tree.fb.results != None:
         if(tree.gain < threshold):
@@ -222,13 +213,12 @@ def prune(tree, threshold):
             tree.tb = None
             tree.fb = None
             tree.gain = -1 
-            print("He prunejat") 
             return True
         return False
     else:
-        if(tree.tb.results == None): prunedT = prune(tree.tb, threshold)
+        if(tree.tb.results == None): prunedT = prune_tree(tree.tb, threshold)
         else: prunedT = False
-        if(tree.fb.results == None): prunedF = prune(tree.fb, threshold)
+        if(tree.fb.results == None): prunedF = prune_tree(tree.fb, threshold)
         else: prunedF = False
         return prunedT or prunedF
 
@@ -240,19 +230,18 @@ def merge_dicts(dict1, dict2):
             dict2[key] = dict1[key]
     return dict2
 
-def main_2(): #Main ian
-    data = read(sys.argv[1])
-    tree = build_tree(part=data, beta=0)
-    printtree(tree)
-    print(" ------------- ")
-    threshold = 0.82
+def prune(tree, threshold):
     pruned = True
     while pruned:
-        pruned = prune(tree, threshold)
-        printtree(tree)
-        print(pruned)
-        print("-----")
-def main_1(): #Main que tenies (quim), borrar despres
+        pruned = prune_tree(tree, threshold)
+
+def main_2():
+    dat_file = read(sys.argv[1])
+    tree = build_tree(part=dat_file, beta=0)
+    prune(tree, 0.85)
+    printtree(tree)
+
+def main_1():
     dat_file = read(sys.argv[1])
     tree = build_tree(part=dat_file, beta=0)
     #printtree(tree)
@@ -265,8 +254,8 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("usage: python3 treepredict.py data_file") 
         sys.exit()
-    main_1()
-    #main_2()
+    #main_1()
+    main_2()
     
 
 

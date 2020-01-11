@@ -4,7 +4,7 @@ def printtree(tree, indent=''):
         print(indent+str(tree.results))
     else:
         # Print the criteria
-        print(indent + str(tree.col)+':'+str(tree.value)+'? ' + str(tree.gain))
+        print(indent + str(tree.col)+':'+str(tree.value)+'? ')
         # Print the branches
         print(indent+'T->')
         printtree(tree.tb, indent+'  ')
