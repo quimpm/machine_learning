@@ -187,7 +187,7 @@ def getLeafNodes(dat_file, tree):
         set1,set2 = divideset(dat_file, tree.col, tree.value)
         return getLeafNodes(set1, tree.tb)+getLeafNodes(set2, tree.fb)
 
-def prune(tree, threshold):
+def prune_tree(tree, threshold):
     if tree.tb == None: return False 
     if tree.tb.results != None and tree.fb.results != None:
         if(tree.gain < threshold):
@@ -201,9 +201,9 @@ def prune(tree, threshold):
             return True
         return False
     else:
-        if(tree.tb.results == None): prunedT = prune(tree.tb, threshold)
+        if(tree.tb.results == None): prunedT = prune_tree(tree.tb, threshold)
         else: prunedT = False
-        if(tree.fb.results == None): prunedF = prune(tree.fb, threshold)
+        if(tree.fb.results == None): prunedF = prune_tree(tree.fb, threshold)
         else: prunedF = False
         return prunedT or prunedF
 
@@ -215,15 +215,17 @@ def merge_dicts(dict1, dict2):
             dict2[key] = dict1[key]
     return dict2
 
-def main_2():
-    data = read(sys.argv[1])
-    tree = build_tree(part=data, beta=0)
-    threshold = 0.82
+def prune(tree, threshold):
     pruned = True
     while pruned:
-        pruned = prune(tree, threshold)
+        pruned = prune_tree(tree, threshold)
+
+def main_2():
+    dat_file = read(sys.argv[1])
+    tree = build_tree(part=dat_file, beta=0)
+    prune(tree, 0.85)
     printtree(tree)
-    
+
 def main_1():
     dat_file = read(sys.argv[1])
     tree = build_tree(part=dat_file, beta=0)
