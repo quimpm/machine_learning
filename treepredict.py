@@ -250,11 +250,15 @@ def prune(tree, threshold):
             tree.tb = None
             tree.fb = None
             tree.gain = -1 
-    
-    elif(tree.tb.results == None): prune(tree.tb, threshold)
-    else: prune(tree.fb, threshold)
-    
-
+            print("He prunejat") 
+            return True
+        return False
+    else:
+        if(tree.tb.results == None): prunedT = prune(tree.tb, threshold)
+        else: prunedT = False
+        if(tree.fb.results == None): prunedF = prune(tree.fb, threshold)
+        else: prunedF = False
+        return prunedT or prunedF
 
 def merge_dicts(dict1, dict2):
     for key in dict1:
@@ -269,10 +273,13 @@ def main_2(): #Main ian
     tree = build_tree(part=data, beta=0)
     printtree(tree)
     print(" ------------- ")
-    prune(tree, 0)
-    printtree(tree)
-    
-
+    threshold = 0.82
+    pruned = True
+    while pruned:
+        pruned = prune(tree, threshold)
+        printtree(tree)
+        print(pruned)
+        print("-----")
 def main_1(): #Main que tenies (quim), borrar despres
     dat_file = read(sys.argv[1])
     #counts = unique_counts(dat_file)
