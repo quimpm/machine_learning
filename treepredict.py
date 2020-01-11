@@ -235,19 +235,10 @@ def main_2(): #Main ian
     
 def main_1(): #Main que tenies (quim), borrar despres
     dat_file = read(sys.argv[1])
-    #counts = unique_counts(dat_file)
-    #gini = gini_impurity(dat_file)
-    #ent = entropy(dat_file)
     tree = build_tree(part=dat_file, beta=0)
     printtree(tree)
-    #classification = classify(['facebook','New Zealand','no','22','None'], tree)
-    #print(classification)
     tree_iter = buildtree_iter(part=dat_file, beta=0)
     printtree(tree_iter)
-    #training_set_percentage = 98
-    #training_set, test_set = split_set(dat_file, training_set_percentage)
-    #correctly_classified=test_performance(training_set, test_set)
-    #print(correctly_classified)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
