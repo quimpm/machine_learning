@@ -65,7 +65,6 @@ def build_tree(part, scoref=entropy, beta=0):
     best_gain = 0
     best_criteria = None 
     best_sets = None
-    
     columns = len(part[0]) -1 
     for elem in part:
         for i in range(columns):
@@ -189,14 +188,6 @@ def getLeafNodes(dat_file, tree):
         return getLeafNodes(set1, tree.tb)+getLeafNodes(set2, tree.fb)
 
 def prune(tree, threshold):
-    '''print("-----")
-    printtree(tree)
-    print("Col:" + str(tree.col))
-    print("Val:" + str(tree.value))
-    print("Res:" + str(tree.results))
-    print("Fb:" + str(tree.tb))
-    print("Tb:" + str(tree.fb))
-    print("Gain:" + str(tree.gain))'''
     if tree.tb == None: return False 
     if tree.tb.results != None and tree.fb.results != None:
         if(tree.gain < threshold):
@@ -224,7 +215,7 @@ def merge_dicts(dict1, dict2):
             dict2[key] = dict1[key]
     return dict2
 
-def main_2(): #Main ian
+def main_2():
     data = read(sys.argv[1])
     tree = build_tree(part=data, beta=0)
     threshold = 0.82
@@ -233,7 +224,7 @@ def main_2(): #Main ian
         pruned = prune(tree, threshold)
     printtree(tree)
     
-def main_1(): #Main que tenies (quim), borrar despres
+def main_1():
     dat_file = read(sys.argv[1])
     tree = build_tree(part=dat_file, beta=0)
     printtree(tree)
