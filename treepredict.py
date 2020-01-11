@@ -59,65 +59,69 @@ def divideset(part, column, value):
         else:
             set2.append(v)
     return (set1,set2)
-            
-def buildtree(part, scoref=entropy, beta=0):
-    if len(part)==0: return decisionnode()
-    best_criteria = scoref(part)
-    best_sets = ()
-    best_elem = ()
-    update_best_criteria = False #En cas d'estar en un node fulla amb impuresa mínima més gran que beta
-    for row in range(len(part)):
-        for column in range(len(part[row])-1):
+
+def build_tree(part, scoref=entropy, beta=0):
+    if(len(part) == 0): return decisionnode()
+    best_gain = 0
+    best_criteria = None 
+    best_sets = None
+    
+    columns = len(part[0]) -1 
+    for elem in part:
+        for i in range(columns):
             try:
-                set1,set2=divideset(part,column,float(part[row][column]))
+                (set1, set2) = divideset(part, i, float(elem[i]))
             except ValueError:
-                set1,set2=divideset(part,column,part[row][column]) 
-            current_criteria = max(scoref(set1),scoref(set2))
-            if best_criteria > current_criteria:
-                best_criteria = current_criteria
-                best_sets = (set1,set2)
-                best_elem = (row,column)
-                update_best_criteria = True
-    if best_criteria < beta:
-        return decisionnode(results=unique_counts(part))
+                (set1, set2) = divideset(part, i, elem[i])
+            total = len(part)
+            pr = len(set1)/ float(total)
+            pl = len(set2)/float(total)
+
+            gain = scoref(part) - pr * scoref(set1) - pl * scoref(set2)
+            if(gain > best_gain):
+                best_gain = gain
+                best_criteria = (i, elem[i])
+                best_sets = (set1, set2)
+
+    if(best_gain > beta):
+        tree_r = build_tree(best_sets[0], scoref, beta)
+        tree_l = build_tree(best_sets[1], scoref, beta)
+        return decisionnode(best_criteria[0], best_criteria[1],tb=tree_r, fb=tree_l, gain=best_gain)
     else:
-        if update_best_criteria == True:
-            try:
-                return decisionnode(col=best_elem[1], value=float(part[best_elem[0]][best_elem[1]]), tb=buildtree(best_sets[0], entropy, beta), fb=buildtree(best_sets[1], entropy, beta))
-            except ValueError:
-                return decisionnode(col=best_elem[1], value=part[best_elem[0]][best_elem[1]], tb=buildtree(best_sets[0], entropy, beta), fb=buildtree(best_sets[1], entropy, beta))
-        else:
-            return decisionnode(results=unique_counts(part))
+        return decisionnode(results=unique_counts(part), gain=best_gain)
+
 
 def buildtree_iter(part, scoref=entropy, beta=0):
     if len(part)==0: return decisionnode()
-    best_criteria = scoref(part)
-    best_sets = ()
-    best_elem = ()
     node_list = []
     sets_list = [[part, None, None]]
     while sets_list:
+        best_criteria = None
+        best_sets = None
+        best_gain = 0
         current_node = sets_list.pop(0)
         data_set = current_node[0]
         father = current_node[1]
         side = current_node[2]
-        best_criteria = scoref(data_set)
-        update_best_criteria = False #En cas d'estar en un node fulla amb impuresa mínima més gran que beta
-        if best_criteria > beta:
+        update_best_gain = False  
+        if scoref(data_set) > beta:
             for row in range(len(data_set)):
                 for column in range(len(data_set[row])-1):
                     try:
                         set1,set2=divideset(data_set,column,float(data_set[row][column]))
                     except ValueError:
                         set1,set2=divideset(data_set,column,data_set[row][column]) 
-                    current_criteria = max(scoref(set1),scoref(set2))
-                    if best_criteria > current_criteria:
-                        best_criteria = current_criteria
+                    total = len(data_set)
+                    pr = len(set1)/ float(total)
+                    pl = len(set2)/float(total)
+                    current_gain = scoref(data_set) - pr * scoref(set1) - pl * scoref(set2)
+                    if best_gain < current_gain:
+                        best_gain = current_gain
                         best_sets = (set1,set2)
-                        best_elem = (row,column)
-                        update_best_criteria=True
-            if update_best_criteria:
-                node = decisionnode(col=best_elem[1], value=data_set[best_elem[0]][best_elem[1]])
+                        best_criteria = (column, data_set[row][column])
+                        update_best_gain=True
+            if update_best_gain:
+                node = decisionnode(col=best_criteria[0], value=best_criteria[1])
                 node_list.append([node, father, side])
                 sets_list.append([best_sets[0], node, True])
                 sets_list.append([best_sets[1], node ,False])
@@ -155,17 +159,9 @@ def classify(obj, tree):
             if current_node[0].tb is not None:
                 nodes.append([current_node[0].tb,set1])
 
-def test_performance(traning_set, test_set):
-    #training_tree = buildtree(training_set)
-    #def score(classified, result):
-    #    print(result, classified)
-    #    return 0 if result not in classified else classified[result] / sum([v for v in classified.values()])
-    #classfieds = map(lambda x: classify(x, training_tree), test_set)
-    #scored = map(lambda x: score(x[0], x[1][-1]), zip(classfieds, test_set))
-    #res = sum(scored) / len(test_set)
-    #print(res)
-    
 
+def test_performance(traning_set, test_set):
+    pass
 
 
 def array_equal(array1,array2):
@@ -192,24 +188,47 @@ def getLeafNodes(dat_file, tree):
         set1,set2 = divideset(dat_file, tree.col, tree.value)
         return getLeafNodes(set1, tree.tb)+getLeafNodes(set2, tree.fb)
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        sys.exit()
+def prune(tree, threshold):
+    print(tree.col)
+    print(tree.value)
+    print(tree.results)
+    print(tree.tb)
+    print(tree.fb)
+    print(tree.gain)
+    print(tree.tb.gain)
+    print(tree.tb.tb.gain)
+    print(tree.tb.tb.tb.gain)
+    print(tree.tb.tb.tb.results)
+    return False
 
+def main_1(): #Main que tenies (quim), borrar despres
     dat_file = read(sys.argv[1])
     #counts = unique_counts(dat_file)
     #gini = gini_impurity(dat_file)
     #ent = entropy(dat_file)
-    tree = buildtree(part=dat_file, beta=0)
-    #printtree(tree)
+    tree = build_tree(part=dat_file, beta=0)
+    printtree(tree)
     #classification = classify(['facebook','New Zealand','no','22','None'], tree)
     #print(classification)
-    #tree_iter = buildtree_iter(part=dat_file, beta=0)
-    #printtree(tree_iter)
-    training_set_percentage = 98
-    training_set, test_set = split_set(dat_file, training_set_percentage)
-    test_performance(training_set, test_set)
-    
+    tree_iter = buildtree_iter(part=dat_file, beta=0)
+    printtree(tree_iter)
+    #training_set_percentage = 98
+    #training_set, test_set = split_set(dat_file, training_set_percentage)
+    #correctly_classified=test_performance(training_set, test_set)
+    #print(correctly_classified)
+
+def main_2(): #Main ian
+    data = read(sys.argv[1])
+    tree = build_tree(part=data, beta=0)
+    printtree(tree)
+    prune(tree, 2)
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("usage: python3 treepredict.py data_file") 
+        sys.exit()
+    main_1()
+    #main_2()
     
 
 
