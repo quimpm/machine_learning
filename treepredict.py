@@ -4,12 +4,13 @@ import queue
 from collections import defaultdict
 from decisionnode import *
 from printtree import *
+import random
 
 def read(file_name):
     data = open(file_name)
     dataset = []
     for line in data.readlines():
-        words = line.split('\n')[0].split('\t')
+        words = line.split('\n')[0].split(',')
         dataset.append(words)
     return dataset
 
@@ -25,7 +26,6 @@ def unique_counts(part):
         results[row[-1]] += 1
     return dict(results)
 
-
 def gini_impurity(part):
     total = len(part)
     results = unique_counts(part)
@@ -33,7 +33,6 @@ def gini_impurity(part):
     for v in results.values():
         imp -= (v / float(total)) **2
     return imp
-
 
 def entropy(part):
     from math import log
@@ -90,7 +89,6 @@ def build_tree(part, scoref=entropy, beta=0):
         return decisionnode(best_criteria[0], best_criteria[1],tb=tree_r, fb=tree_l, gain=best_gain)
     else:
         return decisionnode(results=unique_counts(part), gain=best_gain)
-
 
 def buildtree_iter(part, scoref=entropy, beta=0):
     if len(part)==0: return decisionnode()
@@ -162,8 +160,21 @@ def classify(obj, tree):
                 nodes.append([current_node[0].tb,set1])
 
 def test_performance(traning_set, test_set):
-    pass
+    tree = build_tree(traning_set)
+    first_obj = test_set.pop(0)
+    leaf_node=classify(first_obj, tree)
+    percentage=calculate_percentage(leaf_node,first_obj)
+    for obj in test_set:
+        leaf_node=classify(obj, tree)
+        percentage=(percentage+calculate_percentage(leaf_node, obj))/2
+    return percentage
 
+def calculate_percentage(leaf_node, obj):
+    equals_to_objective = leaf_node.get(obj[-1]) if obj[-1] in leaf_node else 0
+    total = 0
+    for value in leaf_node.values():
+        total += value
+    return equals_to_objective/total * 100
 
 def array_equal(array1,array2):
     array1.sort()
@@ -180,6 +191,7 @@ def array_equal(array1,array2):
 
 
 def split_set(dat_file, percentage):
+<<<<<<< HEAD
     split_index=((len(dat_file))*percentage)//100
     return dat_file[:split_index],dat_file[(split_index):]
     
@@ -190,6 +202,14 @@ def getLeafNodes(dat_file, tree):
     else:
         set1,set2 = divideset(dat_file, tree.col, tree.value)
         return getLeafNodes(set1, tree.tb)+getLeafNodes(set2, tree.fb)
+=======
+    number_of_training=((len(dat_file))*percentage)//100
+    training_set=[]
+    for i in range(number_of_training):
+        index = random.randint(0,len(dat_file)-1)
+        training_set.append(dat_file.pop(index))
+    return training_set, dat_file
+>>>>>>> 414ad305e7171122b24bd12a6753496b73af0953
 
 
 def prune_tree_2(tree, threshold):
@@ -255,16 +275,20 @@ def main_2():
 def main_1():
     dat_file = read(sys.argv[1])
     tree = build_tree(part=dat_file, beta=0)
-    printtree(tree)
-    tree_iter = buildtree_iter(part=dat_file, beta=0)
-    printtree(tree_iter)
-
+    #printtree(tree)
+    #tree_iter = buildtree_iter(part=dat_file, beta=0)
+    #printtree(tree_iter)
+    #traning_set, test_set=split_set(dat_file, 90)
+    traning_set = read('training_set.data')
+    test_set = read('test_set.data')
+    print(test_performance(traning_set, test_set))
+    
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("usage: python3 treepredict.py data_file") 
         sys.exit()
-    #main_1()
-    main_2()
+    main_1()
+    #main_2()
     
 
 
