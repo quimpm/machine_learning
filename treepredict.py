@@ -191,7 +191,6 @@ def array_equal(array1,array2):
 
 
 def split_set(dat_file, percentage):
-<<<<<<< HEAD
     split_index=((len(dat_file))*percentage)//100
     return dat_file[:split_index],dat_file[(split_index):]
     
@@ -202,14 +201,12 @@ def getLeafNodes(dat_file, tree):
     else:
         set1,set2 = divideset(dat_file, tree.col, tree.value)
         return getLeafNodes(set1, tree.tb)+getLeafNodes(set2, tree.fb)
-=======
     number_of_training=((len(dat_file))*percentage)//100
     training_set=[]
     for i in range(number_of_training):
         index = random.randint(0,len(dat_file)-1)
         training_set.append(dat_file.pop(index))
     return training_set, dat_file
->>>>>>> 414ad305e7171122b24bd12a6753496b73af0953
 
 
 def prune_tree_2(tree, threshold):
