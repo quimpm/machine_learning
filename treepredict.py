@@ -209,7 +209,7 @@ def getLeafNodes(dat_file, tree):
     return training_set, dat_file
 
 
-def prune_tree_2(tree, threshold):
+def prune_tree(tree, threshold):
     if tree.tb == None: return False 
     if tree.tb.results != None and tree.fb.results != None:
         if(tree.gain < threshold):
@@ -224,30 +224,10 @@ def prune_tree_2(tree, threshold):
         return False
     else:
         pruneT = pruneF = True
-        while(tree.tb.results == None and pruneT): pruneT = prune_tree_2(tree.tb, threshold)
-        while(tree.fb.results == None and pruneF): pruneF = prune_tree_2(tree.fb, threshold)
+        while(tree.tb.results == None and pruneT): pruneT = prune_tree(tree.tb, threshold)
+        while(tree.fb.results == None and pruneF): pruneF = prune_tree(tree.fb, threshold)
         return pruneT and pruneF
 
-
-def prune_tree(tree, threshold):
-    if tree.tb == None: return False 
-    if tree.tb.results != None and tree.fb.results != None:
-        if(tree.gain < threshold):
-            tree.col = (tree.tb.col, tree.fb.col)
-            tree.value = None
-            tree.results = merge_dicts(tree.tb.results,
-                                        tree.fb.results)
-            tree.tb = None
-            tree.fb = None
-            tree.gain = -1 
-            return True
-        return False
-    else:
-        if(tree.tb.results == None): prunedT = prune_tree(tree.tb, threshold)
-        else: prunedT = False
-        if(tree.fb.results == None): prunedF = prune_tree(tree.fb, threshold)
-        else: prunedF = False
-        return prunedT or prunedF
 
 def merge_dicts(dict1, dict2):
     for key in dict1:
@@ -257,15 +237,10 @@ def merge_dicts(dict1, dict2):
             dict2[key] = dict1[key]
     return dict2
 
-def prune(tree, threshold):
-    pruned = True
-    while pruned:
-        pruned = prune_tree(tree, threshold)
-
 def main_2():
     dat_file = read(sys.argv[1])
     tree = build_tree(part=dat_file, beta=0)
-    prune_tree_2(tree, 0.85)
+    prune_tree(tree, 0.85)
     #prune(tree, 0.85)
     printtree(tree)
 

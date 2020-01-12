@@ -60,7 +60,26 @@
 %
 \section{Árboles de decisión}
 \subsection{Construcción del árbol de forma recursiva}
-
+Para construir un buen árbol, es necesario
+dividir los sets en base a todas las preguntas y respuestas
+possibles, y quedarse sólo con aquellos que maximicen el augmento
+de impureza. Para hacerlo, hemos recurrido a una implementación
+recursiva que hace lo mencionado.\\
+Este método, dada una partición, una función de puntuación (en nuestro
+caso, gini o entropía) y una beta (mencionada más adelante), retorna
+el nodo raíz de nuestro árbol de decisión.\\
+Para hacerlo, itera de forma que formula cada pregunta con cada elemento
+del dominio de esa pregunta, y divide los sets en base a eso. Una vez divide
+los sets calcula la ganancia de impureza, si es la mejor hasta el momento se
+guarda los parámetros de la partición (pregunta, ganancia y sets) y sigue 
+con las demás preguntas.\\
+Como podemos observar, cuando se acaba este proceso, tenemos la mejor
+partición de sets posible, es entonces cuando usamos el parámetro beta. Si
+la ganancia de impureza es menor que beta, paramos de construir el árbol, y el 
+nodo en el que estamos se convertirá en hoja. En
+caso contrario, seguimos construyendo el árbol con las dos particiones obtenidas.
+De esa forma, se puede buscar una beta tal que el árbol resultante no sea demasiado
+grande. Ya veremos que no es la mejor forma de podar el árbol.
 
 
 
@@ -69,9 +88,48 @@
 \subsection{Evaluación del árbol}
 \subsection{Missing data}
 \subsection{Poda del árbol}
+Podar el árbol utilizando beta no es la mejor
+forma, ya que se podan los dos árboles hijo a la vez,
+y se podria dar el caso de que el cambio de impureza de 
+uno de ellos sea bueno (y por lo tato, el otro muy malo).
+El método de poda empleado es el "bottom-up", que 
+requiere de construir completamente el árbol primero.
+Una vez construido para cada par de hojas con un mismo
+padre, se mira si la unión de ellas aumenta la entropía
+bajo un umbral dado (threshold). Si es así, se unen las 
+dos hojas en el padre, en caso contrario se dejan las particiones
+como estaban. Este proceso se repite hasta que no es posible
+unir más hojas.\\
+Para facilitar la implementación, hemos añadido una variable
+a cada nodo llamada gain, que para cada nodo no hoja guarda 
+la ganancia de impureza debido a la partición.\\ 
+Originalmente se había implementado un método que podaba las hojas
+en ese momento, y se tenía que repetir tantas veces como particiones 
+a podar en una misma rama (para la rama más larga), resultando en un 
+algoritmo de coste O(n*n).
+En una segunda implementación, mediante una función recursiva se ha 
+conseguido paliar el coste hasta O(n).
 
 \section{Clustering}
 \subsection{Restarting policies}
+Dado el factor de aleatoriedad al inicializar los centroides,
+es posible que se acaben consiguiendo clusters que no son 
+realmente representativos, para ello se ha implementado las
+restarting policies.\\
+Antes de todo debemos saber una forma de medir cómo de buena
+es una disposición de clusters dada, eso lo hacemos con la
+función calc\_total\_dist, con la que dados los ítems y los 
+centroides (sus vectores), calculamos la suma de las distancias
+entre cada ítem y su centroide asociado. De esa forma podemos medir
+quantitativamente cómo de bueno es una disposición de centroides 
+respecto a otra.\\
+Una vez que tenemos el sistema de qualificación, para buscar la mejor
+disposición repetimos el proceso de k-means I veces, guardándonos
+la mejor disposición hasta el momento. Una vez el proceso ha acabado,
+obtenemos como resultado la mejor disposición de centroides con ítems
+asociados de entre todas las iteraciones hechas. La función que hace este
+trabajo se llama search\_cluster(I), donde I es una variable parametrizada 
+del número de veces que se desea repetir el proceso de k-means. 
 
 
 \end{document}
