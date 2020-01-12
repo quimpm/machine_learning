@@ -40,11 +40,11 @@
                            text centered}
 }
 \renewcommand{\figurename}{Figura}
-\title{Segona pràctica d'Intel·ligència Artificial}
+\title{Tercera pràctica d'Intel·ligència Artificial}
 \author{Ian Palacín Aliana i Joaquim Picó Mora}
-\date{Dimecres 11 de Desembre}
+\date{Dissabte 11 de gener}
 \assignatura{Inteligència Artificial}
-\professorat{Eduard Torres}
+\professorat{Jesús Ojeda}
 \grup{}
 
 %Comença el document
@@ -58,64 +58,19 @@
 \newpage
 \pagenumbering{arabic}
 %
-\section{Modelización de problemas de grafos}
-\subsection{Maximum Clique}
-Donat un graf, es genera per mitjà dels seus vèrtexs el graf complet. Un cop generat se n'esborren les arestes del graf original obtenint així les arestes complementàries. Finalment aquestes seran les que afegirem com a clàusules a la fórmula wcnf:
-\\\\
-(n1,n2)=(n1 v n2) 
-\subsection{Max-Cut}
-Per cada aresta es crearà dos clàusules soft amb weight = 1 tal que:
-\\\\
-(n1,n2)=(n1 v n2) i (-n1 v -n2)
-\\\\
-D'aquesta forma quan un dels vèrtexs és assignat a verdader implica que l'altre ha de ser fals.
-\section{Transformación (1,3) Weighted Partial MaxSAT}
-Per a cada clàusula soft es crearà una nova clàusula la qual contindrà un únic literal també nou. A l'hora de crear les clàusules hard, es tindran en compte les següents situacions:\\\\
--Que la llargada de la clàusula sigui exactament 3: En aquest cas s'afegirà la clàusula directament a la fórmula.\\\\
--Que la llargada de la clàusula sigui menor que 3: En aquest cas es multiplicarà l'array per 3 i s'agafaran els tres primers elements.\\\\
--Que la llargada de la clàusula sigui major que 3: En aquest cas, es dividirà la clàusula en diferents clàusules que es solaparan per mitjà de noves variables al final i a l'inici de les noves clàusules provinents de l'original.
-Per exemple: (x1 v x2 v x3 v x4) = (x1 v x2 v x5) i (-x5 v x3 v x4) 
+\section{Árboles de decisión}
+\subsection{Construcción del árbol de forma recursiva}
+\subsection{Construcción del árbol de forma iterativa}
+\subsection{Función de clasificación}
+\subsection{Evaluación del árbol}
+\subsection{Missing data}
+\subsection{Poda del árbol}
 
-\section{Modelització de Software Package Upgrades}
-En el que respecta a la modelització de Software Package Upgrades
-hi havia dos tasques principals. La primera consistia en tractar
-la instància d'entrada per tal de treballar amb les dades. La 
-segona tasca era la de la modelització com a tal.\\
-Tractar el fitxer d'entrada ha estat trivial, ja que python
-facilita molt el treball, símplement, \textbf{n} per definir
-variables, \textbf{d} per dependències i \textbf{c} per 
-conflictes.\\
-Una vegada tractades les dades, amb \textbf{wcnf} i msat\_runner
-modelar el problema ha estat més fàcil.\\
- En primer lloc, el 
-model serà de \textbf{wpms}, per tant tindrem clàusules hard i
-clàusules soft. En el nostre cas, les clàusules soft seràn les
-clàusules que solament contindràn les variables. Les clàusules
-hard seràn aquelles que representin les dependències i els
-conflictes.\\
-Com hem dit, hi ha les clàusules que només
-contindràn les variables. Les dependències són de la forma
-pkg1 pkg2 pkg3 ..., on pkg1 té dependències sobre pkg2 o 
-pkg3. Això es pot representar de la forma pkg1\textrightarrow(pkg2 o pkg3),
-que en forma normal conjuntiva quedaria (!pkg1 v pkg2 v pkg3).
-Una vegada en CNF, afegir la clàusula a la fòrmula amb wcnf és
-trivial. Per últim, per modelar els conflictes, que són del tipus pkg1 pkg2,
-on pkg1 té conflicte amb pkg2 és símplement (!pkg1 v !pkg2).\\
-Una vegada s'ha cridat al MaxSAT amb la fòrmula anterior, i aquest
-ens ha passat el resultat, com que volem saber quins paquets
-no s'han pogut instal·lar, és a dir, quines variables no s'han
-pogut satisfer, filtrem els paquets que siguin positius i ens
-quedem amb els negatius.\\
-Arribats a aquest punt solament queda imprimir-ho per sortida estàndard
-juntament amb el nombre de variables no satisfetes.
+\section{Clustering}
+\subsection{Restarting policies}
+
+
 \end{document}
-
-
-
-
-
-
-
 
 
 
