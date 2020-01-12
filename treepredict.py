@@ -14,6 +14,7 @@ def read(file_name):
         dataset.append(words)
     return dataset
 
+
 def unique_counts(part):
     """
     # Create counts of possible results
@@ -43,6 +44,7 @@ def entropy(part):
         ent -= p * log(p, 2)
     return ent
 
+
 def divideset(part, column, value):
     set1=[]
     set2=[]
@@ -56,6 +58,7 @@ def divideset(part, column, value):
         else:
             set2.append(v)
     return (set1,set2)
+
 
 def build_tree(part, scoref=entropy, beta=0):
     if(len(part) == 0): return decisionnode()
@@ -72,7 +75,6 @@ def build_tree(part, scoref=entropy, beta=0):
             total = len(part)
             pr = len(set1)/ float(total)
             pl = len(set2)/float(total)
-
             gain = scoref(part) - pr * scoref(set1) - pl * scoref(set2)
             if(gain > best_gain):
                 best_gain = gain
@@ -139,6 +141,7 @@ def buildtree_iter(part, scoref=entropy, beta=0):
     
     return node_list[0][0]
 
+
 def classify(obj, tree):
     if tree.results != None:
         return tree.results
@@ -180,6 +183,7 @@ def split_set(data_set, percentage):
         training_set.append(data_set.pop(index))
     return training_set, data_set
 
+
 def prune_tree(tree, threshold):
     if tree.tb == None: return False 
     if tree.tb.results != None and tree.fb.results != None:
@@ -190,15 +194,15 @@ def prune_tree(tree, threshold):
                                         tree.fb.results)
             tree.tb = None
             tree.fb = None
-            tree.gain = -1 
+            tree.gain = -1
             return True
         return False
     else:
-        if(tree.tb.results == None): prunedT = prune_tree(tree.tb, threshold)
-        else: prunedT = False
-        if(tree.fb.results == None): prunedF = prune_tree(tree.fb, threshold)
-        else: prunedF = False
-        return prunedT or prunedF
+        pruneT = pruneF = True
+        while(tree.tb.results == None and pruneT): pruneT = prune_tree(tree.tb, threshold)
+        while(tree.fb.results == None and pruneF): pruneF = prune_tree(tree.fb, threshold)
+        return pruneT and pruneF
+
 
 def merge_dicts(dict1, dict2):
     for key in dict1:
@@ -208,15 +212,11 @@ def merge_dicts(dict1, dict2):
             dict2[key] = dict1[key]
     return dict2
 
-def prune(tree, threshold):
-    pruned = True
-    while pruned:
-        pruned = prune_tree(tree, threshold)
-
 def main_2():
     dat_file = read(sys.argv[1])
     tree = build_tree(part=dat_file, beta=0)
-    prune(tree, 0.85)
+    prune_tree(tree, 0.85)
+    #prune(tree, 0.85)
     printtree(tree)
 
 def main_1():
