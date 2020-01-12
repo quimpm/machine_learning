@@ -46,9 +46,7 @@ def entropy(part):
 def divideset(part, column, value):
     set1=[]
     set2=[]
-    if isinstance(value, int):
-        split_function = lambda prot : int(prot[column]) >= value
-    elif isinstance(value, float):
+    if isinstance(value, float):
         split_function = lambda prot : float(prot[column]) >= value
     else:
         split_function = lambda prot : prot[column] == value
@@ -84,7 +82,10 @@ def build_tree(part, scoref=entropy, beta=0):
     if(best_gain > beta):
         tree_r = build_tree(best_sets[0], scoref, beta)
         tree_l = build_tree(best_sets[1], scoref, beta)
-        return decisionnode(best_criteria[0], best_criteria[1],tb=tree_r, fb=tree_l, gain=best_gain)
+        try:
+            return decisionnode(best_criteria[0], float(best_criteria[1]),tb=tree_r, fb=tree_l, gain=best_gain)
+        except ValueError:
+            return decisionnode(best_criteria[0], best_criteria[1],tb=tree_r, fb=tree_l, gain=best_gain)
     else:
         return decisionnode(results=unique_counts(part), gain=best_gain)
 
@@ -101,30 +102,29 @@ def buildtree_iter(part, scoref=entropy, beta=0):
         father = current_node[1]
         side = current_node[2]
         update_best_gain = False  
-        if scoref(data_set) > beta:
-            for row in range(len(data_set)):
-                for column in range(len(data_set[row])-1):
-                    try:
-                        set1,set2=divideset(data_set,column,float(data_set[row][column]))
-                    except ValueError:
-                        set1,set2=divideset(data_set,column,data_set[row][column]) 
-                    total = len(data_set)
-                    pr = len(set1)/ float(total)
-                    pl = len(set2)/float(total)
-                    current_gain = scoref(data_set) - pr * scoref(set1) - pl * scoref(set2)
-                    if best_gain < current_gain:
-                        best_gain = current_gain
-                        best_sets = (set1,set2)
-                        best_criteria = (column, data_set[row][column])
-                        update_best_gain=True
-            if update_best_gain:
+        for row in range(len(data_set)):
+            for column in range(len(data_set[row])-1):
+                try:
+                    set1,set2=divideset(data_set,column,float(data_set[row][column]))
+                except ValueError:
+                    set1,set2=divideset(data_set,column,data_set[row][column]) 
+                total = len(data_set)
+                pr = len(set1)/ float(total)
+                pl = len(set2)/float(total)
+                current_gain = scoref(data_set) - pr * scoref(set1) - pl * scoref(set2)
+                if best_gain < current_gain:
+                    best_gain = current_gain
+                    best_sets = (set1,set2)
+                    best_criteria = (column, data_set[row][column])
+                    update_best_gain=True
+        if best_gain > beta:
+            try:
+                node = decisionnode(col=best_criteria[0], value=float(best_criteria[1]), gain=best_gain)
+            except ValueError:
                 node = decisionnode(col=best_criteria[0], value=best_criteria[1], gain=best_gain)
-                node_list.append([node, father, side])
-                sets_list.append([best_sets[0], node, True])
-                sets_list.append([best_sets[1], node ,False])
-            else:
-                node = decisionnode(results=unique_counts(data_set), gain=best_gain)
-                node_list.append([node,father,side])
+            node_list.append([node, father, side])
+            sets_list.append([best_sets[0], node, True])
+            sets_list.append([best_sets[1], node ,False])
         else:
             node = decisionnode(results=unique_counts(data_set), gain=best_gain)
             node_list.append([node,father,side])
@@ -140,21 +140,20 @@ def buildtree_iter(part, scoref=entropy, beta=0):
     return node_list[0][0]
 
 def classify(obj, tree):
-    dataset = read(sys.argv[1])
-    dataset.append(obj)
-    nodes = []
-    nodes.append([tree,dataset])
-    while nodes:
-        current_node=nodes.pop(0)
-        set1,set2=divideset(current_node[1], current_node[0].col, current_node[0].value)
-        if current_node[0].results is not None and obj in current_node[1]:
-            leaf_node=current_node[1].remove(obj)
-            return unique_counts([data for data in current_node[1] if data != obj])
+    if tree.results != None:
+        return tree.results
+    else:
+        if isinstance(tree.value, float):
+            if float(obj[tree.col]) >= tree.value:
+                return classify(obj,tree.tb)
+            else:
+                return classify(obj,tree.fb)
         else:
-            if current_node[0].fb is not None:
-                nodes.append([current_node[0].fb,set2])
-            if current_node[0].tb is not None:
-                nodes.append([current_node[0].tb,set1])
+            if obj[tree.col] == tree.value:
+                return classify(obj,tree.tb)
+            else:
+                return classify(obj,tree.fb)
+        
 
 def test_performance(traning_set, test_set):
     tree = build_tree(traning_set)
@@ -173,26 +172,13 @@ def calculate_percentage(leaf_node, obj):
         total += value
     return equals_to_objective/total * 100
 
-def array_equal(array1,array2):
-    array1.sort()
-    array2.sort()
-
-    if len(array1) != len(array2):
-        return False
-
-    for i in range(len(array1)):
-        if array1[i] != array2[i]:
-            return False
-    
-    return True
-
-def split_set(dat_file, percentage):
-    number_of_training=((len(dat_file))*percentage)//100
+def split_set(data_set, percentage):
+    number_of_training=((len(data_set))*percentage)//100
     training_set=[]
     for i in range(number_of_training):
-        index = random.randint(0,len(dat_file)-1)
-        training_set.append(dat_file.pop(index))
-    return training_set, dat_file
+        index = random.randint(0,len(data_set)-1)
+        training_set.append(data_set.pop(index))
+    return training_set, data_set
 
 def prune_tree(tree, threshold):
     if tree.tb == None: return False 
@@ -235,14 +221,17 @@ def main_2():
 
 def main_1():
     dat_file = read(sys.argv[1])
-    tree = build_tree(part=dat_file, beta=0)
+    #tree = build_tree(part=dat_file, beta=0)
     #printtree(tree)
     #tree_iter = buildtree_iter(part=dat_file, beta=0)
     #printtree(tree_iter)
-    #traning_set, test_set=split_set(dat_file, 90)
-    traning_set = read('training_set.data')
-    test_set = read('test_set.data')
+    traning_set, test_set=split_set(dat_file, 90)
     print(test_performance(traning_set, test_set))
+    traning_set, test_set=split_set(dat_file, 70)
+    print(test_performance(traning_set, test_set))
+    #traning_set = read('training_set.data')
+    #test_set = read('test_set.data')
+    
     
 if __name__ == "__main__":
     if len(sys.argv) < 2:
